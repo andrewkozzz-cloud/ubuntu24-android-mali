@@ -8,22 +8,23 @@ pkg install -y proot-distro curl wget tar coreutils
 RELEASE_URL="https://github.com/andrewkozzz-cloud/ubuntu24-android-mali/releases/download/v1.0/ubuntu24_droiddesk_arm64.tar.gz"
 EXPECTED_SHA="d51afeea93ac1061c7ab5dbcc9ce128762efd72abe1a7d68ed131ab18d75a87a"
 TARGET_DIR="$HOME/.local/share/proot-distro/installed-rootfs/ubuntu24-mali"
+ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 
 echo "=== [2/4] Скачивание и проверка архива ==="
 mkdir -p "$TARGET_DIR"
-curl -L -o /tmp/rootfs.tar.gz "$RELEASE_URL"
+curl -L -o "$ARCHIVE_PATH" "$RELEASE_URL"
 
 echo "Проверка целостности..."
-ACTUAL_SHA=$(sha256sum /tmp/rootfs.tar.gz | awk '{print $1}')
+ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
 if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
     echo "Ошибка! Хеш файла не совпал."
-    rm -f /tmp/rootfs.tar.gz
+    rm -f "$ARCHIVE_PATH"
     exit 1
 fi
 
 echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
-tar -xzvf /tmp/rootfs.tar.gz -C "$TARGET_DIR"
-rm -f /tmp/rootfs.tar.gz
+tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR"
+rm -f "$ARCHIVE_PATH"
 
 cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.override.sh
 DISTRO_NAME="Ubuntu 24.04 ARM64 (Mali GPU + FreeCAD)"
