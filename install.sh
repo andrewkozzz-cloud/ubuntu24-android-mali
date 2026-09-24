@@ -12,10 +12,15 @@ ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 
 echo "=== [2/4] Скачивание и проверка архива ==="
 mkdir -p "$TARGET_DIR"
-curl -L -o "$ARCHIVE_PATH" "$RELEASE_URL"
+rm -f "$ARCHIVE_PATH"
+
+curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
 
 echo "Проверка целостности..."
 ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
+echo "Скачанный SHA: $ACTUAL_SHA"
+echo "Ожидаемый SHA: $EXPECTED_SHA"
+
 if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
     echo "Ошибка! Хеш файла не совпал."
     rm -f "$ARCHIVE_PATH"
