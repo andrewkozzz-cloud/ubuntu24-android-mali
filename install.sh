@@ -19,7 +19,6 @@ curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
 echo "Проверка целостности..."
 ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
 echo "Скачанный SHA: $ACTUAL_SHA"
-echo "Ожидаемый SHA: $EXPECTED_SHA"
 
 if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
     echo "Ошибка! Хеш файла не совпал."
@@ -28,7 +27,7 @@ if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
 fi
 
 echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
-tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR"
+tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*' || true
 rm -f "$ARCHIVE_PATH"
 
 cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.override.sh
