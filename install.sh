@@ -28,16 +28,17 @@ if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
 fi
 
 echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
-# Отключаем 'set -e' на время распаковки, чтобы игнорировать предупреждения mknod
 set +e
 tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
 set -e
 
 rm -f "$ARCHIVE_PATH"
 
+# Регистрируем дистрибутив в proot-distro
 mkdir -p $PREFIX/etc/proot-distro
-cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.override.sh
+cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.sh
 DISTRO_NAME="Ubuntu 24.04 ARM64 (Mali GPU + FreeCAD)"
+DISTRO_TARBALL=""
 SCRIPT_EOF
 
 echo "=== [4/4] Создание команды запуска start-ubuntu ==="
@@ -46,6 +47,7 @@ cat << 'SCRIPT_EOF' > $PREFIX/bin/start-ubuntu
 export DISPLAY=:0
 export GALLIUM_DRIVER=virpipe
 
+pkill -f termux-x11 || true
 am start -n com.termux.x11/com.termux.x11.MainActivity 2>/dev/null || true
 termux-x11 :0 -ac &
 sleep 2
