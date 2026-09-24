@@ -12,9 +12,10 @@ ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 
 echo "=== [2/4] Скачивание и проверка архива ==="
 mkdir -p "$TARGET_DIR"
-rm -f "$ARCHIVE_PATH"
 
-curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
+if [ ! -f "$ARCHIVE_PATH" ]; then
+    curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
+fi
 
 echo "Проверка целостности..."
 ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
@@ -27,9 +28,14 @@ if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
 fi
 
 echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
-tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*' || true
+# Отключаем 'set -e' на время распаковки, чтобы игнорировать предупреждения mknod
+set +e
+tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
+set -e
+
 rm -f "$ARCHIVE_PATH"
 
+mkdir -p $PREFIX/etc/proot-distro
 cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.override.sh
 DISTRO_NAME="Ubuntu 24.04 ARM64 (Mali GPU + FreeCAD)"
 SCRIPT_EOF
