@@ -17,6 +17,8 @@ if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
     if [ ! -f "$ARCHIVE_PATH" ]; then
         echo "Скачивание архива Ubuntu 24.04..."
         curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
+    else
+        echo "Найден ранее скачанный архив $ARCHIVE_PATH, скачивание пропущено."
     fi
 
     echo "Проверка целостности..."
@@ -29,7 +31,7 @@ if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
         exit 1
     fi
 
-    echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
+    echo "=== [3/4] Распаковка Ubuntu 24.04 ==="
     set +e
     tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
     set -e
@@ -50,6 +52,7 @@ am start -n com.termux.x11/com.termux.x11.MainActivity 2>/dev/null || true
 termux-x11 :0 -ac &
 sleep 2
 
+# Автоматическое выставление крупного шрифта 34 для XFCE
 proot-distro login ubuntu --shared-tmp -- bash -c "export DISPLAY=:0; xfconf-query -c xsettings -p /Gtk/FontName -s 'Sans 34' --create -t string 2>/dev/null || true" &
 
 proot-distro login ubuntu --shared-tmp -- env DISPLAY=:0 startxfce4
