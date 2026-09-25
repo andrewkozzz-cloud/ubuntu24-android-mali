@@ -15,7 +15,7 @@ mkdir -p "$TARGET_DIR"
 
 if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
     if [ ! -f "$ARCHIVE_PATH" ]; then
-        echo "Скачивание архива Ubuntu 24.04..."
+        echo "Скачивание архива Ubuntu 24.04 (Mali GPU)..."
         curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
     else
         echo "Найден ранее скачанный архив $ARCHIVE_PATH, скачивание пропущено."
@@ -31,7 +31,7 @@ if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
         exit 1
     fi
 
-    echo "=== [3/4] Распаковка Ubuntu 24.04 ==="
+    echo "=== [3/4] Распаковка Ubuntu 24.04 (Mali GPU + FreeCAD) ==="
     set +e
     tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
     set -e
