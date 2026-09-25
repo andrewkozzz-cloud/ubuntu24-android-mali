@@ -7,7 +7,7 @@ pkg install -y proot-distro curl wget tar coreutils
 
 RELEASE_URL="https://github.com/andrewkozzz-cloud/ubuntu24-android-mali/releases/download/v1.0/ubuntu24_droiddesk_arm64.tar.gz"
 EXPECTED_SHA="d51afeea93ac1061c7ab5dbcc9ce128762efd72abe1a7d68ed131ab18d75a87a"
-TARGET_DIR="$HOME/.local/share/proot-distro/installed-rootfs/ubuntu24-mali"
+TARGET_DIR="$HOME/.local/share/proot-distro/installed-rootfs/ubuntu"
 ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 
 echo "=== [2/4] Проверка наличия архива и файлов ==="
@@ -17,8 +17,6 @@ if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
     if [ ! -f "$ARCHIVE_PATH" ]; then
         echo "Скачивание архива Ubuntu 24.04..."
         curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
-    else
-        echo "Найден ранее скачанный архив $ARCHIVE_PATH, скачивание пропущено."
     fi
 
     echo "Проверка целостности..."
@@ -41,17 +39,6 @@ else
     echo "Система уже распакована в $TARGET_DIR. Распаковка пропущена."
 fi
 
-# Регистрируем плагин proot-distro
-mkdir -p $PREFIX/etc/proot-distro
-cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.sh
-DISTRO_NAME="Ubuntu 24.04 ARM64 (Mali GPU + FreeCAD)"
-TARBALL_URL['aarch64']=""
-TARBALL_SHA256['aarch64']=""
-distro_setup() {
-    :
-}
-SCRIPT_EOF
-
 echo "=== [4/4] Создание команды запуска start-ubuntu ==="
 cat << 'SCRIPT_EOF' > $PREFIX/bin/start-ubuntu
 #!/data/data/com.termux/files/usr/bin/bash
@@ -63,7 +50,9 @@ am start -n com.termux.x11/com.termux.x11.MainActivity 2>/dev/null || true
 termux-x11 :0 -ac &
 sleep 2
 
-proot-distro login ubuntu24-mali --user andrew --shared-tmp -- env DISPLAY=:0 startxfce4
+proot-distro login ubuntu --shared-tmp -- bash -c "export DISPLAY=:0; xfconf-query -c xsettings -p /Gtk/FontName -s 'Sans 34' --create -t string 2>/dev/null || true" &
+
+proot-distro login ubuntu --shared-tmp -- env DISPLAY=:0 startxfce4
 SCRIPT_EOF
 
 chmod +x $PREFIX/bin/start-ubuntu
