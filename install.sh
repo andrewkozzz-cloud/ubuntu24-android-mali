@@ -10,29 +10,37 @@ EXPECTED_SHA="d51afeea93ac1061c7ab5dbcc9ce128762efd72abe1a7d68ed131ab18d75a87a"
 TARGET_DIR="$HOME/.local/share/proot-distro/installed-rootfs/ubuntu24-mali"
 ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 
-echo "=== [2/4] Скачивание и проверка архива ==="
+echo "=== [2/4] Проверка наличия архива и файлов ==="
 mkdir -p "$TARGET_DIR"
 
-if [ ! -f "$ARCHIVE_PATH" ]; then
-    curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
-fi
+# Если папка уже не пустая (распакована), пропускаем качалку
+if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
+    if [ ! -f "$ARCHIVE_PATH" ]; then
+        echo "Скачивание архива Ubuntu 24.04..."
+        curl -fL -o "$ARCHIVE_PATH" "$RELEASE_URL"
+    else
+        echo "Найден ранее скачанный архив $ARCHIVE_PATH, скачивание пропущено."
+    fi
 
-echo "Проверка целостности..."
-ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
-echo "Скачанный SHA: $ACTUAL_SHA"
+    echo "Проверка целостности..."
+    ACTUAL_SHA=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
+    echo "Скачанный SHA: $ACTUAL_SHA"
 
-if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
-    echo "Ошибка! Хеш файла не совпал."
+    if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+        echo "Ошибка! Хеш файла не совпал."
+        rm -f "$ARCHIVE_PATH"
+        exit 1
+    fi
+
+    echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
+    set +e
+    tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
+    set -e
+
     rm -f "$ARCHIVE_PATH"
-    exit 1
+else
+    echo "Система уже распакована в $TARGET_DIR. Распаковка пропущена."
 fi
-
-echo "=== [3/4] Распаковка Ubuntu 24.04 (FreeCAD + Mali GPU) ==="
-set +e
-tar -xzvf "$ARCHIVE_PATH" -C "$TARGET_DIR" --exclude='dev/*'
-set -e
-
-rm -f "$ARCHIVE_PATH"
 
 # Регистрируем дистрибутив в proot-distro
 mkdir -p $PREFIX/etc/proot-distro
