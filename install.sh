@@ -13,7 +13,6 @@ ARCHIVE_PATH="$HOME/rootfs.tar.gz"
 echo "=== [2/4] Проверка наличия архива и файлов ==="
 mkdir -p "$TARGET_DIR"
 
-# Если папка уже не пустая (распакована), пропускаем качалку
 if [ -z "$(ls -A $TARGET_DIR 2>/dev/null)" ]; then
     if [ ! -f "$ARCHIVE_PATH" ]; then
         echo "Скачивание архива Ubuntu 24.04..."
@@ -42,11 +41,15 @@ else
     echo "Система уже распакована в $TARGET_DIR. Распаковка пропущена."
 fi
 
-# Регистрируем дистрибутив в proot-distro
+# Регистрируем плагин proot-distro
 mkdir -p $PREFIX/etc/proot-distro
 cat << 'SCRIPT_EOF' > $PREFIX/etc/proot-distro/ubuntu24-mali.sh
 DISTRO_NAME="Ubuntu 24.04 ARM64 (Mali GPU + FreeCAD)"
-DISTRO_TARBALL=""
+TARBALL_URL['aarch64']=""
+TARBALL_SHA256['aarch64']=""
+distro_setup() {
+    :
+}
 SCRIPT_EOF
 
 echo "=== [4/4] Создание команды запуска start-ubuntu ==="
